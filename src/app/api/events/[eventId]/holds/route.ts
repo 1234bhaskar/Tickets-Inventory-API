@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { createHoldSchema } from '@/validators/hold';
+import { HoldStatus, OrderStatus } from '@/generated/prisma/enums';
 import { TIER_NOT_FOUND, TIER_EVENT_MISMATCH, INSUFFICIENT_INVENTORY, handleError } from '@/lib/errors';
 
 export async function POST(
@@ -29,13 +30,13 @@ export async function POST(
         include: {
           holds: {
             where: {
-              status: 'active',
+              status: HoldStatus.active,
               expiresAt: { gt: new Date() }
             }
           },
           orders: {
             where: {
-              status: 'paid'
+              status: OrderStatus.paid
             }
           }
         }
@@ -63,7 +64,7 @@ export async function POST(
           tierId,
           quantity,
           expiresAt,
-          status: 'active'
+          status: HoldStatus.active
         }
       });
 

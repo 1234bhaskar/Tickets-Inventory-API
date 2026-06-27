@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { webhookPayloadSchema } from '@/validators/webhook';
+import { HoldStatus, OrderStatus } from '@/generated/prisma/enums';
 import { INVALID_WEBHOOK_PAYLOAD, handleError } from '@/lib/errors';
 
 const corsHeaders = {
@@ -42,24 +43,24 @@ export async function POST(request: Request) {
 
       if (data.type === 'order.paid') {
         const hold = await tx.hold.findFirst({
-          where: { tierId: data.tier_id, status: 'active' },
+          where: { tierId: data.tier_id, status: HoldStatus.active },
           orderBy: { expiresAt: 'desc' },
         });
 
         if (hold) {
           await tx.hold.update({
             where: { id: hold.id },
-            data: { status: 'converted' },
+            data: { status: HoldStatus.converted },
           });
         }
 
         await tx.order.create({
-          data: { id: data.order_id, tierId: data.tier_id, quantity: data.quantity, status: 'paid' },
+          data: { id: data.order_id, tierId: data.tier_id, quantity: data.quantity, status: OrderStatus.paid },
         });
       } else {
         await tx.order.update({
           where: { id: data.order_id },
-          data: { status: 'refunded' },
+          data: { status: OrderStatus.refunded },
         });
       }
 

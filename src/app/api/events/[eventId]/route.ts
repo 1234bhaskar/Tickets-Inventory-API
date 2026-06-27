@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getEventParamsSchema } from '@/validators/event';
+import { HoldStatus, OrderStatus } from '@/generated/prisma/enums';
 import { EVENT_NOT_FOUND, handleError } from '@/lib/errors';
 
 export async function GET(
@@ -23,13 +24,13 @@ export async function GET(
           include: {
             holds: {
               where: {
-                status: 'active',
+                status: HoldStatus.active,
                 expiresAt: { gt: new Date() }
               }
             },
             orders: {
               where: {
-                status: 'paid'
+                status: OrderStatus.paid
               }
             }
           }
